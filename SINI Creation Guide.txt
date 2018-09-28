@@ -1,0 +1,227 @@
+/***********************************************************************************************************************************
+*                                                 GOD First                                                                        *
+* Author: Dustin Ledbetter                                                                                                         *
+* Release Date: 9-25-2018                                                                                                          *
+* Version: 1.0                                                                                                                     *
+* Purpose: This is for anyone who wants to create a pure SINI Pageflex program.                                                  *
+************************************************************************************************************************************/
+
+
+//--------
+//INTRO:--
+//--------
+Hi, This is the second course and will go over creating the Pure SINI application from the book. This guide will also hopefully help to understand the difference between SXI and SINI.
+
+
+
+//-----------------------------------------------------------
+//STEP 1 (Look at the book regarding pageflex programming with SINI):--
+//-----------------------------------------------------------
+It's important to read these pages first: page 323-324. 
+
+
+Let's start by trying to explain the difference between SXI and SINI. 
+1. SXI are the methods you can create in your own library and attach to the storefront as extensions. These methods do work OUTSIDE of the storefront.
+   SXI can call SINI methods to get access to information inside the storefront to work with. 
+
+2. SINI are the methods you can use to alter or retrieve information from INSIDE the storefront, like username, shipping data, etc. 
+
+
+//-------------------------------------------------------
+//Step 2 (Things required to setup our first SINI program)--
+//-------------------------------------------------------
+--Now that you have read/glanced through the book, lets get things setup for working with the SINI extension
+
+
+1. You will need a storefront to use for testing.
+
+2. Make sure you get a site that has a login.
+
+3. You will need to have a user created with admin access for you.
+
+4. Ensure that they are keeping backups of the site just in case.
+
+5. You do not need to create anything for this site to test this program
+
+
+//---------------------------------------
+//Step 3 (creating our first SINI program)--
+//---------------------------------------
+
+Type of program: This is an example of creating an program to create a specified user for the storefront:
+
+The pages 334-335 are used to show what we will creating in this example, But I will also add a method for creating a user from pages 433-434 to show how it works. 
+
+
+1. Open visual studio
+
+2. In the New Project dialog box, select either the Visual Basic Projects or the Visual C# Projects folder. (I created mine using C# and my code will be shown as such)
+
+3. Click the Console App(.NET Framework).
+
+4. Choose a folder for this extension ("MyPureSINI" is the name of mine) 
+
+5. Click OK to create the project.
+
+6. Rename your source file. 
+    - Make sure the Solution Explorer is visible
+    - Right click Program.cs and select Rename from the popup menu
+    - Specify a new name for Program.cs. The base name of the file will also become the name of your class. ("SINIOne" is the name of mine)
+    
+7. Add a Reference to PFWeb.dll and SXI.dll
+    - On the Project menu, click Add Reference.
+    - Select the Browse tab of the Add Reference dialog.
+    - Browse to your Storefront deployment’s WebPages\bin directory and select PFWeb.dll and repeat the process for SXI.dll.
+    - Click OK to close the Add Reference dialog.
+
+8. Add using statement for PFWeb.StorefrontAPI;
+    - For a C# Class Library, insert a “using” statement at the top of the file to use the Pageflex extension namespace, that is: "using static PFWeb.StorefrontAPI;"
+
+9. At a minimum your program must call ObtainUserTicket to get access to the website
+   
+	/*
+	   var storefrontUrl = @"https://www.devccorp-inc.com/interface/StorefrontAPI.asmx";
+           var Storefront = new SXI.StorefrontAPIHelper(storefrontUrl);
+           var ticket = Storefront.ObtainUserTicket("username", "password", "unsure, check my code and books");
+	*/program t
+
+
+10. We add the method to create a new user as long as the user does not already exist
+    
+   
+    /*
+            string uid = null;
+            if (eSuccess == Storefront.CreateUser("NewUser", out uid))
+            {
+                Console.WriteLine(uid);
+                Storefront.SetValue("UserProperty", "Password", uid, "secret");
+                Storefront.SetValue("UserField", "UserProfileFirstName", uid, "FName");
+                Storefront.SetValue("UserField", "UserProfileLastName", uid, "Lname");
+                Storefront.SetValue("UserField", "UserProfileEmailAddress", uid, "new@example.com");
+                Storefront.SetValue("UserProperty", "IsActive", uid, "1");
+                Console.WriteLine("Sucessful");
+            }
+            else
+            {
+                Console.WriteLine("User Already Exists");
+            }
+    */
+      
+ 
+11. Next we add some code after to view the results
+
+	/*
+            Console.WriteLine(uid);
+            Console.WriteLine(Storefront.GetValue("UserField", "UserProfileLastName", uid));
+*           Console.WriteLine("success");
+	*/
+
+- Make sure to set a breakpoint on this line: "Console.WriteLine("success");"    This will stop the program console from closing and allow you to view the writelines.
+- If a user is successfully created then you will see the uid for the user and the GetValue will return his last name - if not it will stay null
+
+
+* Keep in mind you must create a new unique user name each time you run this to see it working
+
+
+    
+12. You now have your first SINI program. Here is my full example below:
+
+/***********************************************************************************************************************************
+*                                                 GOD First                                                                        *
+* Author: Dustin Ledbetter                                                                                                         *
+* Release Date: 9-25-2018                                                                                                          *
+* Version: 1.0                                                                                                                     *
+* Purpose: To create a pure SINI program for the storefront to show how they work                                                  *
+************************************************************************************************************************************/
+
+using System;
+using static PFWeb.StorefrontAPI;
+
+
+namespace MyPureSINI
+{
+    class SINIOne
+    {
+        static void Main(string[] args)
+        {
+
+
+
+
+            #region This section is used to specify the storefront to use and to give access to it with a pre-existing user
+            
+            // Specify the website to use
+            var storefrontUrl = @"https://www.yoursitepath";
+            // Pass the url to the storefront API
+            var Storefront = new SXI.StorefrontAPIHelper(storefrontUrl);
+            // Retrieve a ticket for user from the storefront by passing it login info 
+            var ticket = Storefront.ObtainUserTicket("username", "password", "company.extension(Not sure what this should be for others sorry. Pretty sure this is for naming though)");
+
+
+            // This line is to see the ticket recieved for the user
+            Console.WriteLine(ticket);
+
+            #endregion
+
+
+            #region This section is used to create a new user in the storefront
+            
+            // Create user id field and set to null til used for user creation
+            string uid = null;
+
+            // Check to see if it is a success to create a new user. If it is then we set values for it
+            if (eSuccess == Storefront.CreateUser("NewUser", out uid))
+            {
+
+                // Display the User id for us to see on console
+                Console.WriteLine(uid);
+
+                // Set some fields for the user that is being created
+                Storefront.SetValue("UserProperty", "Password", uid, "secret");
+                Storefront.SetValue("UserField", "UserProfileFirstName", uid, "FName");
+                Storefront.SetValue("UserField", "UserProfileLastName", uid, "LName");
+                Storefront.SetValue("UserField", "UserProfileEmailAddress", uid, "new@example.com");
+                Storefront.SetValue("UserProperty", "IsActive", uid, "1");
+
+                // Report that the user was created
+                Console.WriteLine("Sucessful");
+            }
+            else
+            {
+
+                // Report that the user already exists 
+                Console.WriteLine("User Already Exists");
+            }
+
+            #endregion
+
+
+            #region This section is to show the results of our program
+
+            // If a user was successfully created the next two lines will have the id and last name of the user
+            // If the user already existed then these lines will be blank
+            Console.WriteLine(uid);
+            Console.WriteLine(Storefront.GetValue("UserField", "UserProfileLastName", uid));
+
+            // This line should have a break point set on it to prevent the program from closing so that we can view the console results
+            Console.WriteLine("success");
+
+            #endregion
+
+
+        //end of method: Main
+        }
+    //end of class: SINIOne
+    }
+//end of file: MyPureSINI
+}
+
+
+
+13. Once you have this you just run the program (Congrats! You now have a working SINI program)
+    - You can then go to the website and login as an admin and view the users page to see that this one was created
+    - You can also try to login on the user site with the user name and password you created
+
+* Note: The first time I ran this code it just created the user and did not update any of his fields. The second time and every time after it worked fine.
+        If your first fails to work, just try a second time before thinking the code is wrong.
+    
